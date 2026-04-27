@@ -38,7 +38,7 @@ python3 app.py
 Open `http://localhost:5001` in your browser. The app has two modes:
 
 - **Spam Classifier** -- Type any text message to classify it as ham or spam
-- **Instruction Following** -- Type a story prompt and adjust temperature, repetition penalty, and max tokens
+- **Story telling** -- Type a story prompt and adjust temperature, repetition penalty, and max tokens
 
 Model weights are downloaded from Hugging Face automatically on first launch.
 

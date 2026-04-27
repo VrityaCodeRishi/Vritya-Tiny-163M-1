@@ -11,7 +11,7 @@ print("Loading spam classifier...")
 spam_model = load_classifier()
 spam_model.to(device)
 
-print("Loading instruction model...")
+print("Loading story generation model...")
 instruct_model = GPTModel(cfg)
 instruct_model.load_state_dict(
     torch.load(_ensure_weights("instruction_finetuned.pth"),
@@ -234,7 +234,7 @@ HTML = """
     <h1>Vritya-Tiny-163M</h1>
     <div class="mode-toggle">
       <button class="mode-btn active" onclick="setMode('classify')" id="btn-classify">Spam Classifier</button>
-      <button class="mode-btn" onclick="setMode('generate')" id="btn-generate">Instruction Following</button>
+      <button class="mode-btn" onclick="setMode('generate')" id="btn-generate">Story telling</button>
     </div>
   </header>
   <div id="chat">
@@ -261,8 +261,8 @@ HTML = """
       </div>
     </div>
     <div id="input-context">
-      <label>Additional context (optional)</label>
-      <input id="context" type="text" placeholder="e.g. a paragraph to summarize, data to analyze...">
+      <label>Extra details for the story (optional)</label>
+      <input id="context" type="text" placeholder="e.g. names, setting, or a twist you want included...">
     </div>
     <div class="input-row">
       <input id="msg" type="text" placeholder="Type an SMS message to classify..." autocomplete="off" autofocus>
@@ -291,10 +291,10 @@ HTML = """
       genParams.style.display = 'none';
       placeholder.textContent = 'Type a message below to classify it as ham or spam';
     } else {
-      msgInput.placeholder = 'Type an instruction...';
+      msgInput.placeholder = 'Type a story prompt or idea...';
       contextArea.style.display = 'block';
       genParams.style.display = 'block';
-      placeholder.textContent = 'Type an instruction and the model will generate a response';
+      placeholder.textContent = 'Type a story prompt and the model will continue it';
     }
     chat.innerHTML = '';
     chat.appendChild(placeholder);
@@ -386,7 +386,7 @@ def generate_route():
     repetition_penalty = request.json.get("repetition_penalty", 1.2)
     max_tokens = min(int(request.json.get("max_tokens", 200)), 500)
     if not instruction.strip():
-        return jsonify({"error": "empty instruction"}), 400
+        return jsonify({"error": "empty prompt"}), 400
     prompt = format_prompt(instruction, input_text)
     response = generate(
         instruct_model, prompt, device, max_tokens=max_tokens,
