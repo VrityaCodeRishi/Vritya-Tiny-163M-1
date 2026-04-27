@@ -1,6 +1,10 @@
+import os
 import torch
 import torch.nn as nn
 import tiktoken
+from huggingface_hub import hf_hub_download
+
+HF_REPO = "curious-techie/Vritya-Tiny-163M"
 
 cfg = {
     "vocab_size": 50257,
@@ -186,12 +190,19 @@ def generate(model, prompt, device, max_tokens=300, temperature=0.7,
     return response
 
 
+def _ensure_weights(filename):
+    if not os.path.exists(filename):
+        return hf_hub_download(HF_REPO, filename)
+    return filename
+
+
 if __name__ == "__main__":
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
+    weights_path = _ensure_weights("instruction_finetuned.pth")
     model = GPTModel(cfg)
     model.load_state_dict(
-        torch.load("/Users/curious_techie/Desktop/instruction_finetuned.pth", map_location="cpu", weights_only=True)
+        torch.load(weights_path, map_location="cpu", weights_only=True)
     )
     model.to(device)
     model.eval()

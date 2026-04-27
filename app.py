@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template_string
 import torch
 from classify import load_model as load_classifier, classify, cfg
-from generate import GPTModel, format_prompt, generate
+from generate import GPTModel, format_prompt, generate, _ensure_weights
 
 app = Flask(__name__)
 
@@ -14,7 +14,7 @@ spam_model.to(device)
 print("Loading instruction model...")
 instruct_model = GPTModel(cfg)
 instruct_model.load_state_dict(
-    torch.load("/Users/curious_techie/Desktop/instruction_finetuned.pth",
+    torch.load(_ensure_weights("instruction_finetuned.pth"),
                map_location="cpu", weights_only=True)
 )
 instruct_model.to(device)

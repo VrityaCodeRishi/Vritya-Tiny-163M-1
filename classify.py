@@ -1,6 +1,10 @@
+import os
 import torch
 import torch.nn as nn
 import tiktoken
+from huggingface_hub import hf_hub_download
+
+HF_REPO = "curious-techie/Vritya-Tiny-163M"
 
 cfg = {
     "vocab_size": 50257,
@@ -118,7 +122,14 @@ class GPTModel(nn.Module):
         return logits
 
 
+def _ensure_weights(filename):
+    if not os.path.exists(filename):
+        return hf_hub_download(HF_REPO, filename)
+    return filename
+
+
 def load_model(path="finetuned_for_classification.pth"):
+    path = _ensure_weights(path)
     model = GPTModel(cfg)
     model.linear_head = nn.Linear(cfg["emb_dim"], NUM_CLASSES, bias=False)
     model.load_state_dict(torch.load(path, map_location="cpu", weights_only=True))
