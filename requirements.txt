@@ -2,3 +2,5 @@ torch>=2.0
 tiktoken
 flask
 huggingface_hub
+matplotlib
+datasets

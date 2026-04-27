@@ -197,7 +197,8 @@ def _ensure_weights(filename):
 
 
 if __name__ == "__main__":
-    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    from classify import get_device
+    device = get_device()
 
     weights_path = _ensure_weights("instruction_finetuned.pth")
     model = GPTModel(cfg)

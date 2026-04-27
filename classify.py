@@ -23,6 +23,14 @@ NUM_CLASSES = 2
 LABEL_MAP = {0: "Ham", 1: "Spam"}
 
 
+def get_device():
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
 class LayerNorm(nn.Module):
     def __init__(self, emb_dim):
         super().__init__()
@@ -156,7 +164,7 @@ def classify(model, text, device):
 
 
 if __name__ == "__main__":
-    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    device = get_device()
     model = load_model()
     model.to(device)
     print(f"Model loaded on {device}\n")

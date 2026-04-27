@@ -1,11 +1,11 @@
 from flask import Flask, request, jsonify, render_template_string
 import torch
-from classify import load_model as load_classifier, classify, cfg
+from classify import load_model as load_classifier, classify, cfg, get_device
 from generate import GPTModel, format_prompt, generate, _ensure_weights
 
 app = Flask(__name__)
 
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+device = get_device()
 
 print("Loading spam classifier...")
 spam_model = load_classifier()
@@ -249,19 +249,14 @@ HTML = """
                  oninput="document.getElementById('temp-val').textContent=this.value">
         </div>
         <div class="param-group">
-          <label>Top-k <span id="topk-val">40</span></label>
-          <input type="range" id="top_k" min="1" max="100" step="1" value="40"
-                 oninput="document.getElementById('topk-val').textContent=this.value">
-        </div>
-        <div class="param-group">
-          <label>Top-p <span id="topp-val">0.9</span></label>
-          <input type="range" id="top_p" min="0.1" max="1.0" step="0.05" value="0.9"
-                 oninput="document.getElementById('topp-val').textContent=this.value">
-        </div>
-        <div class="param-group">
           <label>Repetition penalty <span id="rep-val">1.2</span></label>
           <input type="range" id="rep_penalty" min="1.0" max="2.0" step="0.1" value="1.2"
                  oninput="document.getElementById('rep-val').textContent=this.value">
+        </div>
+        <div class="param-group" style="grid-column: 1 / -1">
+          <label>Max tokens <span id="maxtok-val">200</span></label>
+          <input type="range" id="max_tokens" min="50" max="500" step="10" value="200"
+                 oninput="document.getElementById('maxtok-val').textContent=this.value">
         </div>
       </div>
     </div>
@@ -350,9 +345,8 @@ HTML = """
             instruction: text,
             input: ctx,
             temperature: parseFloat(document.getElementById('temperature').value),
-            top_k: parseInt(document.getElementById('top_k').value),
-            top_p: parseFloat(document.getElementById('top_p').value),
             repetition_penalty: parseFloat(document.getElementById('rep_penalty').value),
+            max_tokens: parseInt(document.getElementById('max_tokens').value),
           })
         });
         const data = await res.json();
@@ -389,16 +383,14 @@ def generate_route():
     instruction = request.json.get("instruction", "")
     input_text = request.json.get("input", "")
     temperature = request.json.get("temperature", 0.7)
-    top_k = request.json.get("top_k", 40)
-    top_p = request.json.get("top_p", 0.9)
     repetition_penalty = request.json.get("repetition_penalty", 1.2)
+    max_tokens = min(int(request.json.get("max_tokens", 200)), 500)
     if not instruction.strip():
         return jsonify({"error": "empty instruction"}), 400
     prompt = format_prompt(instruction, input_text)
     response = generate(
-        instruct_model, prompt, device, max_tokens=200,
-        temperature=temperature, top_k=top_k,
-        top_p=top_p, repetition_penalty=repetition_penalty,
+        instruct_model, prompt, device, max_tokens=max_tokens,
+        temperature=temperature, repetition_penalty=repetition_penalty,
     )
     return jsonify({"response": response})
 
